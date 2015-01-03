@@ -19,8 +19,10 @@ public class MySqlHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     // Database Name
     private static final String DATABASE_NAME = "Voice";
-    String CREATEUSER = "CREATE TABLE USER (USER_ID TEXT PRIMARY KEY,PASSWORD TEXT NOT NULL, EMAIL TEXT, FULL_NAME TEXT)";
-
+    String CREATE_USER = "CREATE TABLE USER (USER_ID TEXT PRIMARY KEY,PASSWORD TEXT NOT NULL, EMAIL TEXT, FULL_NAME TEXT)";
+    String CREATE_POST = "CREATE TABLE POST (USER_ID TEXT, POST_TITLE TEXT,POST_TEXT TEXT, FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID))";
+    String[] COLUMNS_USER = {"USER_ID","PASSWORD","EMAIL","FULL_NAME"};
+    String[] COLUMN_POST = {"POST_ID","USER_ID","POST_TITLE","POST_TEXT"};
     public MySqlHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DATABASE_NAME,null,DATABASE_VERSION);
     }
@@ -30,9 +32,32 @@ public class MySqlHelper extends SQLiteOpenHelper {
         super(context, name, factory, version, errorHandler);
     }
 
+    public void addPost(Post post){
+        Log.d("addUser", post.toString());
+
+        // 1. get reference to writable DB
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // 2. create ContentValues to add key "column"/value
+        ContentValues values = new ContentValues();
+
+        values.put("USER_ID",post.getUserId()); // get title
+
+        values.put("POST_TITLE",post.getPostTitle()); // get author
+
+        values.put("POST_TEXT",post.getPostText());
+
+        // 3. insert
+        db.insert("POST", // table
+                null, //nullColumnHack
+                values); // key/value -> keys = column names/ values = column values
+
+        // 4. close
+        db.close();
+    }
     public void addUser(User user){
         //for logging
-        Log.d("addBook", user.toString());
+        Log.d("addUser", user.toString());
 
         // 1. get reference to writable DB
         SQLiteDatabase db = this.getWritableDatabase();
@@ -54,7 +79,27 @@ public class MySqlHelper extends SQLiteOpenHelper {
 
         // 4. close
         db.close();
-    }public List<User> getAllBooks() {
+    }
+    public List<Post> getAllPosts(String userId){
+        List<Post> list  =  new LinkedList<Post>();
+        String query = "SELECT * FROM "+"POST";
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(query, null);
+        Post post = null;
+
+        if(cursor.moveToFirst()){
+            do{
+                post = new Post(cursor.getString(0),cursor.getString(1),cursor.getString(2));
+                list.add(post);
+            }while(cursor.moveToNext());
+        }
+
+
+
+
+        return list;
+    }
+    public List<User> getAllBooks() {
         List<User> books = new LinkedList<User>();
 
         // 1. build the query
@@ -70,9 +115,9 @@ public class MySqlHelper extends SQLiteOpenHelper {
             do {
                 user = new User();
                 user.setUserId(cursor.getString(0));
-                user.setUserName(cursor.getString(1));
-                user.setPassword(cursor.getString(2));
-
+                user.setPassword(cursor.getString(1));
+                user.setEmail(cursor.getString(2));
+                user.setUserName(cursor.getString(3));
                 // Add book to books
                 books.add(user);
             } while (cursor.moveToNext());
@@ -90,10 +135,10 @@ public class MySqlHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         // 2. build query
-        String[] COLUMNS = {"USER_ID","PASSWORD","EMAIL","FULL_NAME"};
+
         Cursor cursor =
                 db.query("USER", // a. table
-                        COLUMNS, // b. column names
+                        COLUMNS_USER, // b. column names
                         "USER_ID = ?", // c. selections
                         new String[] { String.valueOf(id) }, // d. selections args
                         null, // e. group by
@@ -119,13 +164,17 @@ public class MySqlHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATEUSER);
+
+        db.execSQL(CREATE_USER);
+        db.execSQL(CREATE_POST);
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         db.execSQL("DROP TABLE IF EXISTS USER");
+        db.execSQL("DROP TABLE IF EXISTS POST");
         this.onCreate(db);
     }
 }

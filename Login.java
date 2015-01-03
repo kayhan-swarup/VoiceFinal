@@ -1,6 +1,7 @@
 package com.swarup.kayhan.voice;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -21,7 +22,7 @@ public class Login extends Fragment {
     View view;
     MySqlHelper dbHelper;
 
-    User user;
+    public static User user;
     EditText userId,password,userName,userNameLogin,passwordLogin;
 
     Button signUp,login;
@@ -58,17 +59,19 @@ public class Login extends Fragment {
             }else if(v.getId()==R.id.login_button){
                 dbHelper = new MySqlHelper(getActivity(),null,null,0);
                 List<User> list = dbHelper.getAllBooks();
-                Toast.makeText(getActivity(),"List Count: "+list.size()+"UserName: "+list.get(0).userName+""+list.get(0).password,Toast.LENGTH_LONG).show();
-                while(!list.isEmpty()){
+                Toast.makeText(getActivity(),"List Count: "+list.size(),Toast.LENGTH_LONG).show();
+                if(list.size()>0){
 
-                    User user= list.remove(0);
-                    Toast.makeText(getActivity(),user.userName+" "+user.password,Toast.LENGTH_LONG).show();
-                    if(user.userName.equals(userNameLogin.getText().toString())&&user.password.equals(passwordLogin.getText().toString())){
-                        Toast.makeText(getActivity(),"DONE!",Toast.LENGTH_LONG).show();
-                    }else Toast.makeText(getActivity(),"NOPE!",Toast.LENGTH_LONG).show();
-                }Toast.makeText(getActivity(),"NOPE!",Toast.LENGTH_LONG).show();
-
+                    while(!list.isEmpty()){
+                        user = list.remove(0);
+                        if(user.getUserId().equals(userNameLogin.getText().toString())&&user.getPassword().equals(passwordLogin.getText().toString())){
+                            Toast.makeText(getActivity(),"SUCCESS!",Toast.LENGTH_LONG).show();
+                            startActivity(new Intent(getActivity(),ProfileActivity.class));
+                        }
+                    }
+            }
 //                user = dbHelper.getUser(0);
+
 
             }
         }
