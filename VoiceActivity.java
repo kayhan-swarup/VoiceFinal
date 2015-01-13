@@ -1,11 +1,13 @@
 package com.swarup.kayhan.voice;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
@@ -56,7 +58,7 @@ import java.util.List;
 
 
 public class VoiceActivity extends Activity implements
-        GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener,
+        GoogleApiClient.ConnectionCallbacks,GoogleApiClient.OnConnectionFailedListener, ResultCallback<People.LoadPeopleResult>,
         View.OnClickListener{
     ListFragment mFragment;
     private static final int RC_SIGN_IN = 0;
@@ -96,9 +98,19 @@ public class VoiceActivity extends Activity implements
 
         if(getActionBar()!=null)
             getActionBar().hide();
-        if(savedInstanceState==null){
-            getFragmentManager().beginTransaction().add(R.id.container, new Login()).commit();
-        }
+        Handler handler = new Handler();
+        if(savedInstanceState==null)
+        handler.postDelayed(new Runnable() {
+            @SuppressLint("WrongViewCast")
+            @Override
+            public void run() {
+                Login login = new Login();
+               getFragmentManager().beginTransaction().add(R.id.container,login ).commit();
+//                ((ViewGroup)findViewById(R.id.userid_login_voice)).addView(findViewById(R.id.sign_in_button));
+
+            }
+        },3000);
+
 //        findViewById(R.id.sign_in_button).setOnClickListener(this);
 
     }
@@ -348,6 +360,24 @@ public class VoiceActivity extends Activity implements
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onResult(People.LoadPeopleResult peopleData) {
+        if (peopleData.getStatus().getStatusCode() == CommonStatusCodes.SUCCESS) {
+            PersonBuffer personBuffer = peopleData.getPersonBuffer();
+            try {
+                int count = personBuffer.getCount();
+                for (int i = 0; i < count; i++) {
+                    Log.d(TAG, "Display name: " + personBuffer.get(i).getDisplayName());
+                    ((TextView)findViewById(R.id.textView)).setText(personBuffer.get(i).getDisplayName());
+                }
+            } finally {
+                personBuffer.close();
+            }
+        } else {
+            Log.e(TAG, "Error requesting visible circles: " + peopleData.getStatus());
         }
     }
 

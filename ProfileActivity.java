@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 
 
 public class ProfileActivity extends FragmentActivity {
-    ViewPager pager;int count=2;
+    ViewPager pager;int count=3;
     Fragment[] fragments= new Fragment[count];
 
 
@@ -47,6 +47,7 @@ public class ProfileActivity extends FragmentActivity {
     }
     @SuppressLint("ValidFragment")
     public class TestFragment extends Fragment{
+
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.test_fragment2,container,false);
@@ -104,12 +105,15 @@ public class ProfileActivity extends FragmentActivity {
             switch(i){
                 case 0:
                     if(Login.user!=null)
-                    fragment = new User(Login.user.getUserId(),Login.user.getPassword(),Login.user.getEmail(),Login.user.getUserName());
+                    fragment = new User(Login.user.getUserId(),Login.user.getPassword(),Login.user.getEmail(),Login.user.getFirstName(),Login.user.getLastName(),Login.user.getSex());
                     else
                     fragment = new User("Test");
                     break;
                 case 1:
                     fragment = new Post();
+                    break;
+                case 2:
+                    fragment = new RecentPosts();
                     break;
                 default:
                     break;

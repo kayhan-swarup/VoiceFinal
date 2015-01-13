@@ -21,16 +21,18 @@ public class Post  extends Fragment implements View.OnClickListener{
     String userId;
     String postTitle;
     String postText;
+    int count=0;
 
     public Post() {
     }
 
     @SuppressLint("ValidFragment")
-    public Post(String userId, String postTitle, String postText) {
+    public Post(int postId,String userId, String postTitle, String postText) {
         this.postId = postId;
         this.userId = userId;
         this.postTitle = postTitle;
         this.postText = postText;
+
     }
 
     public int getPostId() {
@@ -84,6 +86,7 @@ public class Post  extends Fragment implements View.OnClickListener{
             postButton.setOnClickListener(this);
         }
 
+
         return view;
     }
 
@@ -91,8 +94,11 @@ public class Post  extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         if(v.getId()==R.id.post_button_postLayout&&titleEditText.getText().toString().length()>0){
             MySqlHelper db = new MySqlHelper(getActivity(),null,null,0);
-            Post post = new Post(Login.user.getUserId(),titleEditText.getText().toString(),bodyEditText.getText().toString());
-            db.addPost(post);
+            Post post = new Post(postId,Login.user.getUserId(),titleEditText.getText().toString(),bodyEditText.getText().toString());
+
+            int postId = db.addPost(post);
+            db.addView(getUserId(),postId);
+            db.close();
         }
     }
 }
